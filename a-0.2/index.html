@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 MovieExplorer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0f172a'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
+
+    <!-- Navbar -->
+    <header class="bg-gray-900/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand / Logo -->
+            <button onclick="switchView('home')" class="flex items-center space-x-2 text-xl font-bold text-red-500 hover:text-red-400 transition">
+                <span>🎬</span>
+                <span class="tracking-wide">MovieExplorer</span>
+            </button>
+
+            <!-- Navigation Links -->
+            <nav class="flex items-center space-x-6">
+                <button onclick="switchView('home')" class="text-gray-300 hover:text-white transition font-medium">Home</button>
+                <button onclick="switchView('movies')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium shadow transition">Movies</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow">
+        
+        <!-- 1. Home View -->
+        <section id="home-view" class="relative bg-gradient-to-br from-gray-900 via-gray-950 to-black py-24 sm:py-32 flex items-center justify-center text-center px-4 overflow-hidden border-b border-gray-800">
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ef4444_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+            
+            <div class="relative max-w-3xl mx-auto space-y-6">
+                <span class="bg-red-500/10 text-red-400 text-xs sm:text-sm font-semibold px-3 py-1 rounded-full uppercase tracking-wider border border-red-500/20">
+                    Discover Quality Media
+                </span>
+                
+                <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight">
+                    DISCOVER MOVIES
+                </h1>
+                
+                <p class="text-lg sm:text-xl text-gray-400 max-w-xl mx-auto">
+                    Explore and discover your favorite movies and shows from around the world.
+                </p>
+                
+                <div class="pt-4">
+                    <button onclick="switchView('movies')" class="bg-red-600 hover:bg-red-700 text-white text-lg font-semibold px-8 py-3.5 rounded-full shadow-lg shadow-red-600/30 transform hover:-translate-y-0.5 transition duration-200">
+                        Explore Now 🚀
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Movie Listing View -->
+        <section id="movies-view" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+            <!-- Search Bar -->
+            <div class="max-w-xl mx-auto mb-10">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">🔍</span>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        oninput="handleSearchInput()" 
+                        placeholder="Search for a movie title..." 
+                        class="w-full bg-gray-800 text-white placeholder-gray-400 pl-11 pr-4 py-3.5 rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-inner text-base"
+                    >
+                </div>
+            </div>
+
+            <!-- Loader -->
+            <div id="loading-spinner" class="hidden flex justify-center items-center py-24">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-message" class="hidden text-center py-20 text-red-400"></div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden text-center py-20 text-gray-400 text-lg">
+                No movies found matching your search. Try a different query.
+            </div>
+
+            <!-- Movie Grid -->
+            <div id="movie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+    </main>
+
+    <!-- 3. Movie Details Modal -->
+    <div id="movie-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto" onclick="closeModal(event)">
+        <div class="relative bg-gray-900 border border-gray-800 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl my-8 text-gray-100" onclick="event.stopPropagation()">
+            <!-- Close Button -->
+            <button onclick="closeModalDirect()" class="absolute top-4 right-4 z-10 bg-black/60 hover:bg-red-600 text-white w-9 h-9 rounded-full flex items-center justify-center transition">
+                ✕
+            </button>
+
+            <!-- Backdrop -->
+            <div class="relative h-64 sm:h-72 w-full bg-black">
+                <img id="modal-backdrop" src="" alt="Backdrop" class="w-full h-full object-cover object-center">
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6 space-y-4">
+                <h2 id="modal-title" class="text-2xl sm:text-3xl font-bold text-white"></h2>
+                
+                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+                    <span id="modal-rating" class="flex items-center font-semibold text-amber-400"></span>
+                    <span>|</span>
+                    <span id="modal-release" class="flex items-center"></span>
+                    <span>|</span>
+                    <span id="modal-genres" class="flex items-center text-red-400"></span>
+                </div>
+
+                <div class="text-sm text-gray-400">
+                    <span class="font-medium text-gray-300">Network / Platform:</span> <span id="modal-network"></span>
+                </div>
+
+                <div class="space-y-1 pt-2">
+                    <h4 class="font-semibold text-gray-200">Overview:</h4>
+                    <p id="modal-summary" class="text-gray-400 text-sm leading-relaxed max-h-40 overflow-y-auto pr-2"></p>
+                </div>
+
+                <div class="pt-4 flex justify-end">
+                    <button onclick="closeModalDirect()" class="bg-gray-800 hover:bg-red-600 text-gray-300 hover:text-white px-5 py-2 rounded-lg text-sm font-medium transition">
+                        ❌ Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-950 border-t border-gray-800 py-8 text-center text-sm text-gray-500 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 space-y-3">
+            <div class="flex items-center justify-center space-x-2 font-bold text-gray-300">
+                <span>🎬</span>
+                <span>MovieExplorer</span>
+            </div>
+            <p>© 2026 MovieExplorer. All rights reserved.</p>
+            <div class="flex justify-center space-x-6 text-xs text-gray-400 pt-1">
+                <a href="https://github.com" target="_blank" class="hover:text-white transition">GitHub</a>
+                <a href="https://www.tvmaze.com/api" target="_blank" class="hover:text-white transition">TVMaze API</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let allShows = [];
+        let searchTimeout = null;
+
+        // Navigation Controller
+        function switchView(viewName) {
+            const homeView = document.getElementById('home-view');
+            const moviesView = document.getElementById('movies-view');
+
+            if (viewName === 'home') {
+                homeView.classList.remove('hidden');
+                moviesView.classList.add('hidden');
+            } else if (viewName === 'movies') {
+                homeView.classList.add('hidden');
+                moviesView.classList.remove('hidden');
+                fetchMovies('');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Fetch Data from TVMaze API
+        async function fetchMovies(query) {
+            const spinner = document.getElementById('loading-spinner');
+            const errorDiv = document.getElementById('error-message');
+            const emptyState = document.getElementById('empty-state');
+            const grid = document.getElementById('movie-grid');
+
+            spinner.classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            grid.innerHTML = '';
+
+            try {
+                let url = 'https://api.tvmaze.com/shows';
+                if (query.trim() !== '') {
+                    url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`;
+                }
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to connect to the database.');
+                
+                const data = await response.json();
+                
+                // Map search structure vs default list structure
+                if (query.trim() !== '') {
+                    allShows = data.map(item => item.show);
+                } else {
+                    allShows = data;
+                }
+
+                spinner.classList.add('hidden');
+
+                if (allShows.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                renderMovies(allShows);
+
+            } catch (err) {
+                spinner.classList.add('hidden');
+                errorDiv.textContent = `Error: ${err.message}`;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Render Movie Cards to Grid
+        function renderMovies(shows) {
+            const grid = document.getElementById('movie-grid');
+            grid.innerHTML = '';
+
+            shows.forEach((show) => {
+                const image = show.image?.medium || 'https://via.placeholder.com/210x295?text=No+Image';
+                const title = show.name || 'Unknown Title';
+                const rating = show.rating?.average || 'N/A';
+                const releaseYear = show.premiered ? show.premiered.split('-')[0] : 'N/A';
+
+                const card = document.createElement('div');
+                card.className = "bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-red-500/10 border border-gray-700/60 flex flex-col transition transform hover:-translate-y-1";
+                
+                card.innerHTML = `
+                    <div class="relative aspect-[2/3] w-full bg-gray-900 overflow-hidden">
+                        <img src="${image}" alt="${title}" class="w-full h-full object-cover object-center" loading="lazy">
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow justify-between space-y-3">
+                        <div>
+                            <h3 class="font-bold text-lg text-white line-clamp-1" title="${title}">${title}</h3>
+                            <div class="flex items-center space-x-3 text-sm text-gray-400 mt-1">
+                                <span class="text-amber-400 font-medium">⭐ ${rating}</span>
+                                <span>•</span>
+                                <span>📅 ${releaseYear}</span>
+                            </div>
+                        </div>
+                        <button onclick="openMovieDetails(${show.id})" class="w-full bg-gray-700 hover:bg-red-600 text-gray-200 hover:text-white font-medium py-2 rounded-lg text-sm transition duration-150">
+                            See Details
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Search Input Handling with Debounce
+        function handleSearchInput() {
+            const query = document.getElementById('search-input').value;
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                fetchMovies(query);
+            }, 300);
+        }
+
+        // Modal Controls
+        function openMovieDetails(showId) {
+            const show = allShows.find(s => s.id === showId);
+            if (!show) return;
+
+            document.getElementById('modal-backdrop').src = show.image?.original || show.image?.medium || 'https://via.placeholder.com/800x450?text=No+Image';
+            document.getElementById('modal-title').textContent = show.name || 'Untitled';
+            document.getElementById('modal-rating').textContent = `⭐ Rating: ${show.rating?.average || 'N/A'}`;
+            document.getElementById('modal-release').textContent = `📅 Release: ${show.premiered || 'N/A'}`;
+            document.getElementById('modal-genres').textContent = `🎭 Genres: ${show.genres?.join(', ') || 'N/A'}`;
+            document.getElementById('modal-network').textContent = show.network?.name || show.webChannel?.name || 'N/A';
+            
+            // Clean HTML tags from summary string
+            const rawSummary = show.summary || 'No overview available for this title.';
+            document.getElementById('modal-summary').textContent = rawSummary.replace(/<[^>]*>?/gm, '');
+
+            document.getElementById('movie-modal').classList.remove('hidden');
+        }
+
+        function closeModal(event) {
+            if (event.target.id === 'movie-modal') {
+                closeModalDirect();
+            }
+        }
+
+        function closeModalDirect() {
+            document.getElementById('movie-modal').classList.add('hidden');
+        }
+
+        // Close on 'Escape' key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModalDirect();
+        });
+    </script>
+</body>
+</html>

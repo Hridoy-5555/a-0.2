@@ -4,10 +4,10 @@ MovieExplorer হলো একটি সহজ Movie/TV Show Search App। এ�
 
 
 🛠️ Technology Stack
-Core: JavaScript, React
-Styling: CSS, Tailwind CSS (Optional but recommended)
-Data: Free Movie Database API (e.g., OMDB, TMDB, TVMaze)
-TVMaze Doc: API
+*Core: JavaScript, React
+*Styling: CSS, Tailwind CSS (Optional but recommended)
+*Data: Free Movie Database API (e.g., OMDB, TMDB, TVMaze)
+*TVMaze Doc: API
 
 
 🌟 মূল বৈশিষ্ট্যসমূহ
